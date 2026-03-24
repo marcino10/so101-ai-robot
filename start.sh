@@ -25,7 +25,7 @@ model_list_file="/home/user/lerobot/model_names.txt"
 camerasConfig="{ front: {type: opencv, index_or_path: \"$frontPath\", width: $width, height: $height, fps: $fps, fourcc: \"$format\"}, top: {type: opencv, index_or_path: \"$topPath\", width: $width, height: $height, fps: $fps, fourcc: \"$format\"}, side: {type: opencv, index_or_path: \"$sidePath\", width: $width, height: $height, fps: $fps, fourcc: \"$format\"} }"
 camerasConfig2="{ front: {type: opencv, index_or_path: '$frontPath', width: $width, height: $height, fps: $fps, fourcc: '$format'}, top: {type: opencv, index_or_path: '$topPath', width: $width, height: $height, fps: $fps, fourcc: '$format'} }"
 
-echo $camerasConfig2 >> test.txt
+camerasConfig=$camerasConfig2
 
 touch "$repo_list_file"
 touch "$model_list_file"
