@@ -94,23 +94,39 @@ case $option in
     3)
         echo "Starting VALIDATE..."
 
-        if [ ! -s "$model_list_file" ]; then
-            echo "No saved model names found."
+        models_dir="/home/user/lerobot/outputs/train"
+        if [ ! -d "$models_dir" ]; then
+            echo "No saved models found in $models_dir."
+            exit 1
+        fi
+
+        models=()
+        for dir in "$models_dir"/*; do
+            if [ -d "$dir" ]; then
+                models+=("$(basename "$dir")")
+            fi
+        done
+
+        if [ ${#models[@]} -eq 0 ]; then
+            echo "No saved models found in $models_dir."
             exit 1
         fi
 
         read -r -p "Enter repo ID: " repoName
 
-        echo "Saved model names:"
-        nl -w2 -s') ' "$model_list_file"
+        echo "Saved models:"
+        for i in "${!models[@]}"; do
+            echo "$((i+1))) ${models[$i]}"
+        done
+
         read -r -p "Choose model number: " modelNumber
 
-        modelName=$(sed -n "${modelNumber}p" "$model_list_file")
-
-        if [ -z "$modelName" ]; then
+        if ! [[ "$modelNumber" =~ ^[0-9]+$ ]] || [ "$modelNumber" -lt 1 ] || [ "$modelNumber" -gt "${#models[@]}" ]; then
             echo "Invalid model selection."
             exit 1
         fi
+
+        modelName="${models[$((modelNumber-1))]}"
 
         read -r -p "Enter number of episodes for validation [1]: " numEpisodes
         numEpisodes=${numEpisodes:-1}
@@ -130,27 +146,43 @@ case $option in
             --dataset.num_episodes="$numEpisodes" \
             --dataset.single_task="Grab The Cube" \
             --dataset.push_to_hub=false \
-            --policy.path="/home/user/lerobot/outputs/train/act_so101_$modelName/checkpoints/090000/pretrained_model" \
+            --policy.path="/home/user/lerobot/outputs/train/$modelName/checkpoints/last/pretrained_model"
         ;;
 
     4)
         echo "Starting TRAIN..."
 
-        if [ ! -s "$repo_list_file" ]; then
-            echo "No saved repo IDs found."
+        cache_dir="/home/user/.cache/huggingface/lerobot/train"
+        if [ ! -d "$cache_dir" ]; then
+            echo "No saved repos found in $cache_dir."
             exit 1
         fi
 
-        echo "Saved repo IDs:"
-        nl -w2 -s') ' "$repo_list_file"
+        repos=()
+        for dir in "$cache_dir"/*; do
+            if [ -d "$dir" ]; then
+                repos+=("$(basename "$dir")")
+            fi
+        done
+
+        if [ ${#repos[@]} -eq 0 ]; then
+            echo "No saved repos found in $cache_dir."
+            exit 1
+        fi
+
+        echo "Saved repos:"
+        for i in "${!repos[@]}"; do
+            echo "$((i+1))) train/${repos[$i]}"
+        done
+
         read -r -p "Choose repo number: " repoNumber
 
-        selectedRepoId=$(sed -n "${repoNumber}p" "$repo_list_file")
-
-        if [ -z "$selectedRepoId" ]; then
+        if ! [[ "$repoNumber" =~ ^[0-9]+$ ]] || [ "$repoNumber" -lt 1 ] || [ "$repoNumber" -gt "${#repos[@]}" ]; then
             echo "Invalid repo selection."
             exit 1
         fi
+
+        selectedRepoId="train/${repos[$((repoNumber-1))]}"
 
         read -r -p "Enter model name: " modelName
 
